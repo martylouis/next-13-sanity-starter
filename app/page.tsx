@@ -1,10 +1,19 @@
-import Image from 'next/image'
+import { sanityClientFetch } from '@/lib/sanity/client'
+import { queryAllPosts } from '@/lib/sanity/queries/post'
+import { Post } from '@/lib/sanity/types/post'
 import { Inter } from '@next/font/google'
+import Image from 'next/image'
+import Link from 'next/link'
 import styles from './page.module.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home() {
+const Home = async () => {
+  let posts: Post[]
+
+  // TODO: add sanity preview mode
+  posts = await sanityClientFetch(queryAllPosts)
+
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -46,46 +55,23 @@ export default function Home() {
       </div>
 
       <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        {posts.map((post) => (
+          <Link
+            key={post._id}
+            href={`/blog/${post.slug?.current}`}
+            className={styles.card}
+          >
+            <h2 className={inter.className}>
+              {post.title} <span>-&gt;</span>
+            </h2>
+            <p className={inter.className}>Updated at {post._updatedAt}</p>
+          </Link>
+        ))}
       </div>
     </main>
   )
 }
+
+export default Home
+
+export const revalidate = 10
